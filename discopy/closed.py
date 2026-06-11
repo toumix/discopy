@@ -18,7 +18,6 @@ Summary
     Coeval
     Curry
     Sum
-    Category
     Functor
 
 Axioms
@@ -50,6 +49,7 @@ from typing import Dict, Callable
 from inspect import signature
 
 from discopy import cat, biclosed, markov
+from discopy.abc import ClosedCategory
 from discopy.cat import factory
 from discopy.utils import assert_isinstance
 
@@ -106,7 +106,6 @@ class Ty(biclosed.Ty):
 
 class Exp(Ty, biclosed.Exp):
     "An exponential object in a markov category."
-    __ambiguous_inheritance__ = (biclosed.Exp, )
 
     def __str__(self):
         return f"({self.exponent} >> {self.base})"
@@ -138,8 +137,8 @@ class Constant(TermBase):
         return []
 
     def to_diagram(self, category=None, box_factory=None):
-        category, box_factory = category or Category, box_factory or Box
-        return box_factory(self.name, category.ar.ty_factory(), self.cod)
+        category, box_factory = category or Diagram, box_factory or Box
+        return box_factory(self.name, category.ty_factory(), self.cod)
 
 
 @dataclass(frozen=True)
@@ -155,7 +154,7 @@ class Variable(TermBase):
         return [self]
 
     def to_diagram(self, category=None):
-        return (category or Category).ar.id(self.cod)
+        return (category or Diagram).id(self.cod)
 
 
 @dataclass(frozen=True)
@@ -227,7 +226,7 @@ class Substitution:
 
 
 @factory
-class Diagram(markov.Diagram, biclosed.Diagram):
+class Diagram(markov.Diagram, biclosed.Diagram, ClosedCategory):
     """
     A closed diagram is both a markov and a biclosed diagram.
 
@@ -242,26 +241,22 @@ class Diagram(markov.Diagram, biclosed.Diagram):
 
 class Box(markov.Box, biclosed.Box, Diagram):
     "A closed box is a markov and biclosed box in a closed diagram."
-    __ambiguous_inheritance__ = (markov.Box, biclosed.Box)
 
     is_linear = True
 
 
 class Eval(biclosed.Eval, Box):
     "The evaluation of an exponential type."
-    __ambiguous_inheritance__ = (biclosed.Eval, )
     drawing_name = "Eval"
 
 
 class Coeval(biclosed.Coeval, Box):
     "The coevaluation of an exponential type, i.e. the dagger of an Eval."
-    __ambiguous_inheritance__ = (biclosed.Coeval, )
     drawing_name = "$\\lambda$"
 
 
 class Curry(biclosed.Curry, Box):
     "The currying of a closed diagram."
-    __ambiguous_inheritance__ = (markov.Swap, )
 
     def to_drawing(self):
         if self.left:
@@ -273,17 +268,14 @@ class Curry(biclosed.Curry, Box):
 
 class Swap(markov.Swap, Box):
     "Symmetric swap in a closed diagram."
-    __ambiguous_inheritance__ = (markov.Swap, )
 
 
 class Trace(markov.Trace, Box):
     "A trace in a closed category."
-    __ambiguous_inheritance__ = (markov.Trace, )
 
 
 class Copy(markov.Copy, Box):
     "A markov copy in a closed category"
-    __ambiguous_inheritance__ = (markov.Copy, )
 
     is_linear = False
 
@@ -297,23 +289,27 @@ class Sum(markov.Sum, biclosed.Sum, Box):
         dom (Ty) : The domain of the formal sum.
         cod (Ty) : The codomain of the formal sum.
     """
-    __ambiguous_inheritance__ = (markov.Sum, biclosed.Sum)
 
 
-class Category(markov.Category, biclosed.Category):
+Diagram.over, Diagram.under, Diagram.exp\
+    = map(staticmethod, (biclosed.Over, biclosed.Under, Exp))
+Diagram.sum_factory = Sum
+
+Id = Diagram.id
+
+
+class Functor(biclosed.Functor, markov.Functor):
     """
-    A Markov category is a markov category with a method :code:`curry`.
+    A closed functor is a markov functor
+    that preserves evaluation and currying.
 
     Parameters:
-        ob : The type of objects.
-        ar : The type of arrows.
+        ob (Mapping[Ty, Ty]) :
+            Map from atomic :class:`Ty` to :code:`cod.ty_factory`.
+        ar (Mapping[Box, Diagram]) : Map from :class:`Box` to :code:`cod`.
+        cod (Category) : The codomain of the functor.
     """
-    ob, ar = Ty, Diagram
-
-
-class Functor(markov.Functor, biclosed.Functor):
-    "A Markov functor is a markov functor that preserves currying."
-    dom = cod = Category(Ty, Diagram)
+    dom = cod = Diagram
 
     def __call__(self, other):
         if isinstance(other, (
@@ -323,7 +319,7 @@ class Functor(markov.Functor, biclosed.Functor):
 
 
 class Hypergraph(markov.Hypergraph):
-    category, functor = Category, Functor
+    functor = Functor
 
 
 Diagram.hypergraph_factory = Hypergraph

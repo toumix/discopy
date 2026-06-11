@@ -25,7 +25,6 @@ from math import pi
 
 from discopy import cat, rigid, tensor, quantum
 from discopy.cat import factory
-from discopy.frobenius import Category
 from discopy.quantum.circuit import qubit, Circuit
 from discopy.quantum.gates import (
     Bra, Ket, Rz, Rx, CX, CZ, Controlled, format_number)
@@ -234,7 +233,6 @@ class Box(tensor.Box[complex], Diagram):
         dom (rigid.PRO) : The domain of the box, i.e. its input.
         cod (rigid.PRO) : The codomain of the box, i.e. its output.
     """
-    __ambiguous_inheritance__ = (tensor.Box, )
 
 
 class Sum(tensor.Sum[complex], Box):
@@ -246,7 +244,6 @@ class Sum(tensor.Sum[complex], Box):
         dom (Dim) : The domain of the formal sum.
         cod (Dim) : The codomain of the formal sum.
     """
-    __ambiguous_inheritance__ = (tensor.Sum, )
 
 
 class Swap(tensor.Swap[complex], Box):
@@ -388,7 +385,7 @@ def gate2zx(box):
 
 circuit2zx = quantum.circuit.Functor(
     ob={qubit: PRO(1)}, ar=gate2zx,
-    dom=Category(quantum.circuit.Ty, Circuit), cod=Category(PRO, Diagram))
+    dom=Circuit, cod=Diagram)
 
 H = Box('H', PRO(1), PRO(1))
 H.dagger = lambda: H

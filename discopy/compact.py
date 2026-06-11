@@ -16,7 +16,6 @@ Summary
     Cup
     Cap
     Swap
-    Category
     Functor
 
 Axioms
@@ -59,12 +58,13 @@ Coherence
 """
 
 from discopy import symmetric, ribbon
+from discopy.abc import CompactCategory
 from discopy.cat import factory
 from discopy.pivotal import Ob, Ty  # noqa: F401
 
 
 @factory
-class Diagram(symmetric.Diagram, ribbon.Diagram):
+class Diagram(symmetric.Diagram, ribbon.Diagram, CompactCategory):
     """
     A compact diagram is a symmetric diagram and a ribbon diagram.
 
@@ -86,7 +86,6 @@ class Box(symmetric.Box, ribbon.Box, Diagram):
         dom (pivotal.Ty) : The domain of the box, i.e. its input.
         cod (pivotal.Ty) : The codomain of the box, i.e. its output.
     """
-    __ambiguous_inheritance__ = (symmetric.Box, ribbon.Box, )
 
 
 class Cup(ribbon.Cup, Box):
@@ -97,7 +96,6 @@ class Cup(ribbon.Cup, Box):
         left (pivotal.Ty) : The atomic type.
         right (pivotal.Ty) : Its adjoint.
     """
-    __ambiguous_inheritance__ = (ribbon.Cup, )
 
 
 class Cap(ribbon.Cap, Box):
@@ -108,7 +106,6 @@ class Cap(ribbon.Cap, Box):
         left (pivotal.Ty) : The atomic type.
         right (pivotal.Ty) : Its adjoint.
     """
-    __ambiguous_inheritance__ = (ribbon.Cap, )
 
 
 class Swap(symmetric.Swap, ribbon.Braid, Box):
@@ -119,18 +116,6 @@ class Swap(symmetric.Swap, ribbon.Braid, Box):
         left (pivotal.Ty) : The type on the top left and bottom right.
         right (pivotal.Ty) : The type on the top right and bottom left.
     """
-    __ambiguous_inheritance__ = (symmetric.Swap, ribbon.Braid, )
-
-
-class Category(symmetric.Category, ribbon.Category):
-    """
-    A compact category is both a symmetric category and a ribbon category.
-
-    Parameters:
-        ob : The objects of the category, default is :class:`pivotal.Ty`.
-        ar : The arrows of the category, default is :class:`Diagram`.
-    """
-    ob, ar = Ty, Diagram
 
 
 class Functor(symmetric.Functor, ribbon.Functor):
@@ -139,11 +124,11 @@ class Functor(symmetric.Functor, ribbon.Functor):
 
     Parameters:
         ob (Mapping[pivotal.Ty, pivotal.Ty]) :
-            Map from atomic :class:`pivotal.Ty` to :code:`cod.ob`.
-        ar (Mapping[Box, Diagram]) : Map from :class:`Box` to :code:`cod.ar`.
+            Map from atomic :class:`pivotal.Ty` to :code:`cod.ty_factory`.
+        ar (Mapping[Box, Diagram]) : Map from :class:`Box` to :code:`cod`.
         cod (Category) : The codomain of the functor.
     """
-    dom = cod = Category()
+    dom = cod = Diagram
 
     def __call__(self, other):
         if isinstance(other, Swap):
@@ -152,7 +137,7 @@ class Functor(symmetric.Functor, ribbon.Functor):
 
 
 class Hypergraph(symmetric.Hypergraph):
-    category, functor = Category, Functor
+    functor = Functor
 
 
 Id = Diagram.id

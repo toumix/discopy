@@ -16,7 +16,6 @@ Summary
     Braid
     Twist
     Sum
-    Category
     Functor
 
 Axioms
@@ -34,13 +33,14 @@ The axiom for the twist holds on the nose.
 from __future__ import annotations
 
 from discopy import monoidal, braided, traced
+from discopy.abc import BalancedCategory
 from discopy.cat import factory
-from discopy.monoidal import Ty
+from discopy.monoidal import Ty  # noqa: F401
 from discopy.utils import factory_name, assert_isatomic
 
 
 @factory
-class Diagram(braided.Diagram, traced.Diagram):
+class Diagram(braided.Diagram, traced.Diagram, BalancedCategory):
     """
     A balanced diagram is a braided diagram with :class:`Twist`.
 
@@ -58,7 +58,6 @@ class Diagram(braided.Diagram, traced.Diagram):
 
     .. _nLab: https://ncatlab.org/nlab/show/traced+monoidal+category)
     """
-    __ambiguous_inheritance__ = True
 
     @classmethod
     def twist(cls, dom: monoidal.Ty) -> Diagram:
@@ -96,7 +95,7 @@ class Diagram(braided.Diagram, traced.Diagram):
         .. image:: /_static/balanced/twist_dual_rail.png
         """
         class DualRail(Functor):
-            cod = braided.Category()
+            cod = braided.Diagram
 
             def __call__(self, other):
                 if isinstance(other, Twist):
@@ -116,7 +115,6 @@ class Box(braided.Box, traced.Box, Diagram):
         dom (monoidal.Ty) : The domain of the box, i.e. its input.
         cod (monoidal.Ty) : The codomain of the box, i.e. its output.
     """
-    __ambiguous_inheritance__ = (braided.Box, traced.Box)
 
 
 class Braid(braided.Braid, Box):
@@ -137,7 +135,6 @@ class Trace(traced.Trace, Box):
     --------
     :meth:`Diagram.trace`
     """
-    __ambiguous_inheritance__ = (traced.Trace, )
 
 
 class Twist(Box):
@@ -178,18 +175,6 @@ class Sum(braided.Sum, Box):
         dom (Ty) : The domain of the formal sum.
         cod (Ty) : The codomain of the formal sum.
     """
-    __ambiguous_inheritance__ = (braided.Sum, )
-
-
-class Category(braided.Category, traced.Category):
-    """
-    A braided category is a monoidal category with a method :code:`braid`.
-
-    Parameters:
-        ob : The objects of the category, default is :class:`Ty`.
-        ar : The arrows of the category, default is :class:`Diagram`.
-    """
-    ob, ar = Ty, Diagram
 
 
 class Functor(braided.Functor, traced.Functor):
@@ -198,23 +183,23 @@ class Functor(braided.Functor, traced.Functor):
 
     Parameters:
         ob (Mapping[monoidal.Ty, monoidal.Ty]) :
-            Map from :class:`monoidal.Ty` to :code:`cod.ob`.
-        ar (Mapping[Box, Diagram]) : Map from :class:`Box` to :code:`cod.ar`.
+            Map from :class:`monoidal.Ty` to :code:`cod.ty_factory`.
+        ar (Mapping[Box, Diagram]) : Map from :class:`Box` to :code:`cod`.
         cod (Category) :
-            The codomain, :code:`Category(Ty, Diagram)` by default.
+            The codomain, :code:`Diagram` by default.
     """
-    dom = cod = Category(Ty, Diagram)
+    dom = cod = Diagram
 
     def __call__(self, other):
         if isinstance(other, Twist):
-            return self.cod.ar.twist(self(other.dom))
+            return self.cod.twist(self(other.dom))
         if isinstance(other, Trace):
             return traced.Functor.__call__(self, other)
         return braided.Functor.__call__(self, other)
 
 
 class Hypergraph(traced.Hypergraph):
-    category, functor = Category, Functor
+    functor = Functor
 
 
 Diagram.hypergraph_factory = Hypergraph

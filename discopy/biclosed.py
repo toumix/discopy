@@ -21,7 +21,6 @@ Summary
     Coeval
     Curry
     Sum
-    Category
     Functor
 
 Axioms
@@ -56,8 +55,9 @@ Axioms
 from __future__ import annotations
 
 from discopy import cat, monoidal
+from discopy.abc import BiclosedCategory
 from discopy.drawing import Drawing
-from discopy.cat import Category, factory
+from discopy.cat import factory
 from discopy.utils import (
     factory_name,
     from_tree,
@@ -152,7 +152,6 @@ class Exp(Ty, cat.Ob):
         base : The base type.
         exponent : The exponent type.
     """
-    __ambiguous_inheritance__ = (cat.Ob, )
 
     def __init__(self, base: Ty, exponent: Ty):
         self.base, self.exponent = base, exponent
@@ -222,7 +221,7 @@ class Under(Exp):
 
 
 @factory
-class Diagram(monoidal.Diagram):
+class Diagram(monoidal.Diagram, BiclosedCategory):
     """
     A biclosed diagram is a monoidal diagram
     with :class:`Curry` and :class:`Eval` boxes.
@@ -232,7 +231,6 @@ class Diagram(monoidal.Diagram):
         dom (Ty) : The domain of the diagram, i.e. its input.
         cod (Ty) : The codomain of the diagram, i.e. its output.
     """
-    __ambiguous_inheritance__ = True
 
     ty_factory = Ty
 
@@ -283,7 +281,6 @@ class Box(monoidal.Box, Diagram):
         dom (Ty) : The domain of the box, i.e. its input.
         cod (Ty) : The codomain of the box, i.e. its output.
     """
-    __ambiguous_inheritance__ = (monoidal.Box, )
 
 
 class Eval(Box):
@@ -351,7 +348,6 @@ class Sum(monoidal.Sum, Box):
         dom (Ty) : The domain of the formal sum.
         cod (Ty) : The codomain of the formal sum.
     """
-    __ambiguous_inheritance__ = (monoidal.Sum, )
 
 
 Diagram.over, Diagram.under, Diagram.exp\
@@ -361,45 +357,35 @@ Diagram.sum_factory = Sum
 Id = Diagram.id
 
 
-class Category(monoidal.Category):
-    """
-    A biclosed category is a monoidal category with methods :code:`exp`
-    (:code:`over` and / or :code:`under`), :code:`ev` and :code:`curry`.
-
-    Parameters:
-        ob : The type of objects.
-        ar : The type of arrows.
-    """
-    ob, ar = Ty, Diagram
-
-
 class Functor(monoidal.Functor):
     """
     A biclosed functor is a monoidal functor
     that preserves evaluation and currying.
 
     Parameters:
-        ob (Mapping[Ty, Ty]) : Map from atomic :class:`Ty` to :code:`cod.ob`.
-        ar (Mapping[Box, Diagram]) : Map from :class:`Box` to :code:`cod.ar`.
+        ob (Mapping[Ty, Ty]) :
+            Map from atomic :class:`Ty` to :code:`cod.ty_factory`.
+        ar (Mapping[Box, Diagram]) : Map from :class:`Box` to :code:`cod`.
         cod (Category) : The codomain of the functor.
     """
-    dom = cod = Category(Ty, Diagram)
+    dom = cod = Diagram
 
     def __call__(self, other):
         for cls, attr in [(Over, "over"), (Under, "under"), (Exp, "exp")]:
-            if isinstance(other, cls) and hasattr(self.cod.ar, attr):
-                method = getattr(self.cod.ar, attr)
+            if isinstance(other, cls) and hasattr(self.cod, attr):
+                method = getattr(self.cod, attr)
                 return method(self(other.base), self(other.exponent))
-        if isinstance(other, Curry) and hasattr(self.cod.ar, "curry"):
-            return self.cod.ar.curry(
+        if isinstance(other, Curry) and hasattr(self.cod, "curry"):
+            return self.cod.curry(
                 self(other.arg), len(self(other.cod.exponent)), other.left)
-        if isinstance(other, (Eval, Coeval)) and hasattr(self.cod.ar, "ev"):
+        if isinstance(other, (Eval, Coeval)) and hasattr(self.cod, "ev"):
             base, exponent, left = other.x.base, other.x.exponent, other.left
-            result = self.cod.ar.ev(self(base), self(exponent), left)
+            result = self.cod.ev(self(base), self(exponent), left)
             return result.dagger() if isinstance(other, Coeval) else result
-        if self.cod.ar is Drawing:
+        if self.cod is Drawing:
             if isinstance(other, Ty) and other.inside == (other, ):
-                return self.ob[other]  # Avoid infinite recursion when drawing.
+                # Avoid infinite recursion when drawing.
+                return self.ob_map[other]
         return super().__call__(other)
 
 
@@ -410,7 +396,7 @@ def to_rigid(self):
         ob=lambda x: rigid.Ty(x.inside[0].name),
         ar=lambda f: rigid.Box(
             f.name, Diagram.to_rigid(f.dom), Diagram.to_rigid(f.cod)),
-        cod=rigid.Category())(self)
+        cod=rigid.Diagram)(self)
 
 
 Id = Diagram.id

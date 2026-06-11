@@ -293,7 +293,7 @@ def test_Functor_init():
 def test_Functor_repr():
     assert repr(Functor({Ty('x'): Ty('y')}, {})) ==\
         "monoidal.Functor("\
-        "ob={monoidal.Ty(cat.Ob('x')): monoidal.Ty(cat.Ob('y'))}, ar={})"
+        "ob_map={monoidal.Ty(cat.Ob('x')): monoidal.Ty(cat.Ob('y'))}, ar_map={})"
 
 
 def test_Functor_call():
@@ -310,7 +310,10 @@ def test_Functor_call():
 
 
 def test_PRO_Functor():
-    G = Functor(lambda x: x @ x, lambda f: f, cod=Category(PRO, Diagram))
+    class PRODiagram(Diagram):
+        ty_factory = PRO
+
+    G = Functor(lambda x: x @ x, lambda f: f, cod=PRODiagram)
     assert G(PRO(2)) == PRO(4)
 
 

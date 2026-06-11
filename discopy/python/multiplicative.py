@@ -71,7 +71,6 @@ class Function(function.Function):
             fix
             trace
     """
-    __ambiguous_inheritance__ = True
 
     ty_factory = Ty
 
@@ -212,8 +211,3 @@ class Function(function.Function):
             >> self >> cod @ self.discard(traced)
 
     exp = over = under = staticmethod(lambda x, y: exp(x, y))
-
-
-class Category:
-    ob = Ty
-    ar = Function
