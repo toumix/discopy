@@ -307,7 +307,7 @@ Diagram.sum_factory = Sum
 Id = Diagram.id
 
 
-class Functor(markov.Functor):
+class Functor(markov.Functor, biclosed.Functor):
     """
     A closed functor is a markov functor
     that preserves evaluation and currying.
