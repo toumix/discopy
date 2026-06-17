@@ -5,6 +5,7 @@ on:
     branches:
       - 'main'
       - 'tooling/uv-migration'
+      - 'claude/upbeat-thompson-55rruo'  # TODO: remove before merging, temporary for testing auto-push of docs images
   pull_request:
 
 env:
@@ -41,6 +42,8 @@ jobs:
         uv run pylint discopy
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       matrix:
         python-version: [ "3.12", "3.13", "3.14" ]
@@ -64,6 +67,16 @@ jobs:
     - name: Coverage
       run:
         uv run coverage report --fail-under=98 --show-missing
+    - name: Commit and push regenerated docs images
+      if: github.event_name == 'push' && matrix.python-version == '3.14'
+      run: |
+        if [ -n "$(git status --porcelain -- '${{ env.DOCS_DIR }}/_static')" ]; then
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add '${{ env.DOCS_DIR }}/_static'
+          git commit -m "Update docs images [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
+        fi
   docs:
     runs-on: ubuntu-latest
     strategy:

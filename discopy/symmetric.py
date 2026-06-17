@@ -22,20 +22,20 @@ Axioms
 ------
 
 >>> from discopy.drawing import Equation
->>> x, y, z, w = map(Ty, "xyzw")
->>> f, g = Box("f", x, y), Box("g", z, w)
+>>> a, b, c, d = map(Ty, "abcd")
+>>> f, g = Box("f", a, b), Box("g", c, d)
 
 Triangle
 ========
 
->>> assert Diagram.swap(Ty(), x) == Id(x) == Diagram.swap(x, Ty())
+>>> assert Diagram.swap(Ty(), a) == Id(a) == Diagram.swap(a, Ty())
 
 Hexagon
 =======
 
->>> assert Diagram.swap(x, y @ z) == Swap(x, y) @ z >> y @ Swap(x, z)
->>> assert Diagram.swap(x @ y, z) == x @ Swap(y, z) >> Swap(x, z) @ y
->>> Equation(Diagram.swap(x, y @ z), Diagram.swap(x @ y, z), symbol='').draw(
+>>> assert Diagram.swap(a, b @ c) == Swap(a, b) @ c >> b @ Swap(a, c)
+>>> assert Diagram.swap(a @ b, c) == a @ Swap(b, c) >> Swap(a, c) @ b
+>>> Equation(Diagram.swap(a, b @ c), Diagram.swap(a @ b, c), symbol='').draw(
 ...     space=2, path='docs/_static/symmetric/hexagons.png', figsize=(5, 2))
 
 .. image:: /_static/symmetric/hexagons.png
@@ -45,10 +45,10 @@ Involution
 ==========
 a.k.a. Reidemeister move 2
 
->>> assert Swap(x, y)[::-1] == Swap(y, x)
+>>> assert Swap(a, b)[::-1] == Swap(b, a)
 >>> with Diagram.hypergraph_equality:
-...     assert Swap(x, y) >> Swap(y, x) == Id(x @ y)
->>> Equation(Swap(x, y) >> Swap(y, x), Id(x @ y)).draw(
+...     assert Swap(a, b) >> Swap(b, a) == Id(a @ b)
+>>> Equation(Swap(a, b) >> Swap(b, a), Id(a @ b)).draw(
 ...     path='docs/_static/symmetric/inverse.png', figsize=(3, 2))
 
 .. image:: /_static/symmetric/inverse.png
@@ -73,8 +73,8 @@ a.k.a. Reidemeister move 3
 
 This is a special case of naturality.
 
->>> yang_baxter_left = Swap(x, y) @ z >> y @ Swap(x, z) >> Swap(y, z) @ x
->>> yang_baxter_right = x @ Swap(y, z) >> Swap(x, z) @ y >> z @ Swap(x, y)
+>>> yang_baxter_left = Swap(a, b) @ c >> b @ Swap(a, c) >> Swap(b, c) @ a
+>>> yang_baxter_right = a @ Swap(b, c) >> Swap(a, c) @ b >> c @ Swap(a, b)
 >>> with Diagram.hypergraph_equality:
 ...     assert yang_baxter_left == yang_baxter_right
 >>> Equation(yang_baxter_left, yang_baxter_right).draw(
