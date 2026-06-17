@@ -2,6 +2,8 @@
 
 """ Discopy configuration. """
 
+import os
+
 DEFAULT_BACKEND = 'numpy'
 NUMPY_THRESHOLD = 16
 IGNORE_WARNINGS = [
@@ -47,10 +49,11 @@ DRAWING_DEFAULT = {
     "braid_shadow": (.3, .1)
 }
 
-# Font loaded with pyfonts so that diagrams render identically on every
+# Font bundled with discopy so that diagrams render identically on every
 # machine, instead of depending on whichever fonts happen to be installed
 # on the local system or the CI runner.
-FONT_FAMILY = "Roboto"
+FONT_PATH = os.path.join(
+    os.path.dirname(__file__), "drawing", "fonts", "DejaVuSans.ttf")
 
 # Mapping from tikz colors to hexcodes.
 COLORS = {
