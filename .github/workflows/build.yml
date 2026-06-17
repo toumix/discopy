@@ -5,6 +5,7 @@ on:
     branches:
       - 'main'
       - 'tooling/uv-migration'
+      - 'claude/upbeat-thompson-55rruo'  # TODO: remove before merging, temporary for testing auto-push of docs images
   pull_request:
 
 env:
