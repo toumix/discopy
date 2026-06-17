@@ -21,10 +21,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from math import sqrt
 
+import os
+
 from typing import TYPE_CHECKING
 
+import matplotlib
 import matplotlib.pyplot as plt
 
+from matplotlib.font_manager import FontProperties
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
 
@@ -32,7 +36,15 @@ from discopy.drawing import Node, Point
 
 from discopy.config import (  # noqa: F401
     DRAWING_ATTRIBUTES as ATTRIBUTES,
-    DRAWING_DEFAULT as DEFAULT, COLORS, SHAPES)
+    DRAWING_DEFAULT as DEFAULT, COLORS, SHAPES, FONT_FILENAME)
+
+# Pinned to the exact font file matplotlib ships with (rather than going
+# through its font-manager search, which could pick a same-named font
+# installed on the local system) so that diagrams render identically on
+# every machine using the same matplotlib version, which uv's lockfile
+# pins across machines.
+_FONT = FontProperties(fname=os.path.join(
+    matplotlib.get_data_path(), "fonts", "ttf", FONT_FILENAME))
 
 if TYPE_CHECKING:
     from discopy.drawing import PlaneGraph
@@ -481,6 +493,7 @@ class Matplotlib(Backend):
 
     def draw_text(self, text, i, j, **params):
         params['fontsize'] = params.get('fontsize', DEFAULT['fontsize'])
+        params.setdefault('font', _FONT)
         self.axis.text(i, j, text, **params)
         super().draw_text(text, i, j, **params)
 

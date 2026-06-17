@@ -47,6 +47,11 @@ DRAWING_DEFAULT = {
     "braid_shadow": (.3, .1)
 }
 
+# Pinned to the font file matplotlib ships with, so that diagrams render
+# identically on every machine, instead of depending on whichever font
+# named "DejaVu Sans" happens to be installed on the local system.
+FONT_FILENAME = "DejaVuSans.ttf"
+
 # Mapping from tikz colors to hexcodes.
 COLORS = {
     "white": '#ffffff',
