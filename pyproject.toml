@@ -34,7 +34,8 @@ dependencies = [
   "numpy",
   "networkx",
   "matplotlib",
-  "pillow"
+  "pillow",
+  "pyfonts"
 ]
 
 [dependency-groups]

@@ -28,11 +28,32 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
 
+from pyfonts import load_google_font
+
 from discopy.drawing import Node, Point
 
 from discopy.config import (  # noqa: F401
     DRAWING_ATTRIBUTES as ATTRIBUTES,
-    DRAWING_DEFAULT as DEFAULT, COLORS, SHAPES)
+    DRAWING_DEFAULT as DEFAULT, COLORS, SHAPES, FONT_FAMILY)
+
+_FONT_CACHE = {}
+
+
+def get_font(family=FONT_FAMILY):
+    """
+    Loads a font with :mod:`pyfonts`, caching it so that all diagrams use
+    the exact same font file regardless of the fonts installed locally.
+    """
+    if family not in _FONT_CACHE:
+        font = load_google_font(family)
+        # Pyfonts attaches provider metadata as an extra attribute, which
+        # makes the FontProperties object unhashable for matplotlib's font
+        # cache, so we drop it once the font file has been resolved.
+        for attribute in list(vars(font)):
+            if attribute not in vars(font.__class__()):
+                delattr(font, attribute)
+        _FONT_CACHE[family] = font
+    return _FONT_CACHE[family]
 
 if TYPE_CHECKING:
     from discopy.drawing import PlaneGraph
@@ -481,6 +502,7 @@ class Matplotlib(Backend):
 
     def draw_text(self, text, i, j, **params):
         params['fontsize'] = params.get('fontsize', DEFAULT['fontsize'])
+        params.setdefault('font', get_font(params.pop('font_family', FONT_FAMILY)))
         self.axis.text(i, j, text, **params)
         super().draw_text(text, i, j, **params)
 
