@@ -96,9 +96,6 @@ docs  = [
 [tool.setuptools_scm]
 version_file = "discopy/version.py"
 
-[tool.setuptools.package-data]
-"discopy.drawing" = ["fonts/*.ttf", "fonts/LICENSE_DEJAVU"]
-
 [tool.uv]
 default-groups = ["dev"]
 

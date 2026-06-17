@@ -2,8 +2,6 @@
 
 """ Discopy configuration. """
 
-import os
-
 DEFAULT_BACKEND = 'numpy'
 NUMPY_THRESHOLD = 16
 IGNORE_WARNINGS = [
@@ -49,11 +47,10 @@ DRAWING_DEFAULT = {
     "braid_shadow": (.3, .1)
 }
 
-# Font bundled with discopy so that diagrams render identically on every
-# machine, instead of depending on whichever fonts happen to be installed
-# on the local system or the CI runner.
-FONT_PATH = os.path.join(
-    os.path.dirname(__file__), "drawing", "fonts", "DejaVuSans.ttf")
+# Pinned to the font file matplotlib ships with, so that diagrams render
+# identically on every machine, instead of depending on whichever font
+# named "DejaVu Sans" happens to be installed on the local system.
+FONT_FILENAME = "DejaVuSans.ttf"
 
 # Mapping from tikz colors to hexcodes.
 COLORS = {
