@@ -46,7 +46,7 @@ Axioms
 from __future__ import annotations
 from dataclasses import dataclass
 from abc import abstractproperty
-from typing import Dict, Callable
+from typing import Dict, Callable, Union
 from inspect import signature
 
 from discopy import cat, biclosed, markov
@@ -122,7 +122,7 @@ class TermBase:
     def freevars(self) -> list[Variable]: ...
 
 
-type Term = Constant | Variable | Application | Abstraction
+Term = Union["Constant", "Variable", "Application", "Abstraction"]
 
 
 @dataclass(frozen=True)
